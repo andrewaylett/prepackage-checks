@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-vm-modules
+#!/usr/bin/env -S node --experimental-vm-modules
 
 /*
  * Copyright 2022 Andrew Aylett
