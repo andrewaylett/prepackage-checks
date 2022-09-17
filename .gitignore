@@ -1,0 +1,11 @@
+*.log
+.DS_Store
+/node_modules/
+/dist/
+/build/
+/.idea/
+.~
+.*.swp
+.parcel-cache
+.tool-versions
+.npmrc
