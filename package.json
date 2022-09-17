@@ -2,7 +2,7 @@
   "name": "prepackage-checks",
   "description": "Validates package invariants before publishing",
   "author": "Andrew Aylett",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
