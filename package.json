@@ -6,20 +6,22 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/andrewaylett/self-throttle.git"
+    "url": "https://github.com/andrewaylett/prepackage-checks.git"
   },
   "type": "module",
   "bin": "./dist/cli.js",
   "scripts": {
-    "build": "tsc --build .",
+    "build": "npm run buildOnly",
+    "buildOnly": "tsc --build .",
     "postbuild": "node --experimental-vm-modules dist/cli.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests test",
+    "test": "downgrade-build build",
     "lint": "eslint .",
     "prebuild": "npm run test",
     "pretest": "npm run lint",
     "lint:fix": "npm run lint -- --fix",
-    "prepublishOnly": "npm run build",
-    "dev": "npm run lint:fix && npm run build"
+    "dev": "npm run lint:fix && npm run build",
+    "clean": "rm -rf build dist",
+    "prepare": "npm run clean && npm run buildOnly"
   },
   "prettier": {
     "semi": true,
@@ -38,6 +40,7 @@
     "@types/node": "18.15.7",
     "@typescript-eslint/eslint-plugin": "5.56.0",
     "@typescript-eslint/parser": "5.56.0",
+    "downgrade-build": "0.2.0",
     "eslint": "8.36.0",
     "eslint-config-andrewaylett": "2.2.0",
     "prettier": "2.8.7",
