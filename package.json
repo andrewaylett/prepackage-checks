@@ -37,7 +37,7 @@
     "@tsconfig/node16": "16.1.0",
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.2",
-    "@types/node": "18.16.18",
+    "@types/node": "18.16.19",
     "@typescript-eslint/eslint-plugin": "5.60.1",
     "@typescript-eslint/parser": "5.60.1",
     "downgrade-build": "1.0.0",
