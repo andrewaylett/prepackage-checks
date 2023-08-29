@@ -43,7 +43,7 @@
     "downgrade-build": "1.0.0",
     "eslint": "8.44.0",
     "eslint-config-andrewaylett": "2.3.0",
-    "prettier": "2.8.8",
+    "prettier": "3.0.3",
     "typescript": "5.1.6"
   }
 }
