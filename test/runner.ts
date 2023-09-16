@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-// noinspection JSUnusedGlobalSymbols
-export default {
-    testEnvironment: 'node',
-};
+import './packages.test.js';
