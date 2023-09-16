@@ -16,49 +16,8 @@
  * limitations under the License.
  */
 
-import path from 'node:path';
-import fs from 'node:fs';
+import { run } from './package-files.js';
 
-import glob from 'glob';
-import { run } from 'jest-cli';
-
-// The URL is prefixed with 'file:', which we need to remove before passing to
-// Jest
-const distDir = path.dirname(import.meta.url).substring(5);
-const rootDir = path.resolve(distDir, '..');
-
-let searchDir = rootDir;
-let topDir = searchDir;
-while (searchDir.length > 1) {
-    if (fs.existsSync(path.join(searchDir, 'package.json'))) {
-        topDir = searchDir;
-    }
-    searchDir = path.resolve(searchDir, '..');
-}
-
-const ourNodeModules = glob.sync(path.join(rootDir, '**', 'node_modules'));
-const allNodeModules = glob.sync(path.join(topDir, '**', 'node_modules'));
-const parentNodeModules = allNodeModules.filter((m) => !(m in ourNodeModules));
-
-const config = {
-    rootDir,
-    testEnvironment: 'node',
-    testMatch: ['**/package-files.js'],
-    testPathIgnorePatterns: ['<rootDir>/node_modules/'],
-    injectGlobals: false,
-    transformIgnorePatterns: [],
-    moduleDirectories: [],
-    // Put our modules first, in case we have deps that aren't deduped due to
-    // version constraints -- we don't want to pick up the wrong version.
-    modulePaths: [...ourNodeModules, ...parentNodeModules],
-    haste: {
-        retainAllFiles: true,
-    },
-};
-
-await run([
-    '-c',
-    JSON.stringify(config),
-    '--verbose',
-    ...process.argv.slice(2),
-]);
+const report = await run();
+report.messages.forEach((it) => console.log(it));
+process.exit(report.success ? 0 : 1);

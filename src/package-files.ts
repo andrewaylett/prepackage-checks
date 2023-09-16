@@ -15,11 +15,9 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { stat } from 'node:fs/promises';
 
-import glob from 'glob';
-import { describe, it } from '@jest/globals';
-
-import { expect } from './expect/index.js';
+import { glob } from 'glob';
 
 type StringOrStringRecord = string | Record<string, string>;
 type NestedStringRecords =
@@ -46,85 +44,169 @@ const PACKAGE_JSON: PackageFile = JSON.parse(
     readFileSync('./package.json').toString(),
 );
 
-describe('Build output', () => {
-    describe.each([
-        ['source'],
-        ['main'],
-        ['types'],
-        ['exports'],
-        ['imports'],
-        ['bin'],
-    ])(`All %p files are present`, (fileType) => {
-        const element = PACKAGE_JSON[fileType];
-        if (element) {
-            const object =
-                typeof element == 'string' ? { default: element } : element;
-            describe.each(Object.entries(object))(
-                `%p entries for ${fileType}`,
-                (pattern: string, v: NestedStringRecords): void => {
-                    const elements = typeof v !== 'object' ? { default: v } : v;
+const PACKAGE_FILE_KEYS = [
+    'source',
+    'main',
+    'types',
+    'exports',
+    'imports',
+    'bin',
+];
 
-                    if (pattern.includes('*')) {
-                        // Check that we have a default and all the files for each pattern.
-                        it(`${pattern} has a default value`, () => {
-                            expect(Object.keys(v)).toContain('default');
-                        });
+type Report = {
+    success: boolean;
+    messages: string[];
+};
 
-                        it(`${pattern} only has one wildcard`, () => {
-                            expect(pattern).toMatch(/^[^*]*\*[^*]*$/);
-                        });
+function reduceReports(reports: Report[], message: string): Report {
+    return reports.reduce(
+        (prev, next) => ({
+            messages: prev.messages.concat(next.messages.map((m) => `  ${m}`)),
+            success: prev.success && next.success,
+        }),
+        {
+            messages: [message],
+            success: true,
+        },
+    );
+}
 
-                        const check: Record<string, string[][]> = {};
-                        for (const [type, pattern] of Object.entries(
-                            elements,
-                        )) {
-                            if (typeof pattern === 'string') {
-                                const [prefix, suffix] = pattern.split('*', 2);
-                                const matches = glob.sync(
-                                    pattern.replace('/*', '/**/*'),
-                                );
-                                for (const file of matches) {
-                                    const match = file.slice(
-                                        prefix.length,
-                                        -suffix.length,
-                                    );
-                                    check[match] = check[match] ?? [];
-                                    check[match].push([type, file]);
-                                }
-                            }
-                        }
-                        const types = Object.keys(elements);
+function fail(m: string): Report {
+    return {
+        messages: [m],
+        success: false,
+    };
+}
+function inform(m: string): Report {
+    return {
+        messages: [m],
+        success: true,
+    };
+}
 
-                        describe.each(Object.entries(check))(
-                            `%p for "${pattern}": all of [${types}] exist`,
-                            (match, found) => {
-                                const foundTypes = found.map((f) => f[0]);
-                                it(`[${foundTypes}] matches [${types}]`, () => {
-                                    expect(foundTypes).toEqual(
-                                        expect.arrayContaining(types),
-                                    );
-                                });
-                                it.each(found)(
-                                    `%p for "${match}": %p exists`,
-                                    (_, file) => {
-                                        expect(typeof file).toEqual('string');
-                                        expect(file).isAFile();
-                                    },
-                                );
-                            },
-                        );
-                    } else {
-                        // Simple file match
-                        it.each(Object.entries(elements))(
-                            `%p for "${pattern}": %p exists`,
-                            (_, v) => {
-                                expect(typeof v).toEqual('string');
-                                expect(v).isAFile();
-                            },
-                        );
-                    }
-                },
-            );
+async function checkFile(v: unknown): Promise<Report> {
+    if (typeof v != 'string') {
+        return fail('Invalid structure: expected a string filename');
+    }
+    try {
+        if (!(await stat(v)).isFile()) {
+            return fail(`${v} is not a file`);
+        } else {
+            return inform(`Found file "${v}"`);
         }
-    });
-});
+    } catch {
+        return fail(`${v} does not exist`);
+    }
+}
+
+async function checkKey(
+    key: string,
+    value?: NestedStringRecords,
+): Promise<Report> {
+    if (!value) {
+        return inform(`No entry for "${key}"`);
+    }
+    const object = typeof value == 'string' ? { default: value } : value;
+    if (typeof object == 'number' || typeof object == 'boolean') {
+        return fail('malformed entry');
+    }
+
+    const reports: Report[] = await Promise.all(
+        Object.entries(object).map(async ([pattern, v]) => {
+            const elements = typeof v !== 'object' ? { default: v } : v;
+            const reports: Report[] = [];
+
+            if (pattern.includes('*')) {
+                // Check that we have a default and all the files for each pattern.
+                if (!Object.keys(elements).includes('default')) {
+                    reports.push(fail(`${pattern} has no default value`));
+                }
+
+                if (!pattern.match(/^[^*]*\*[^*]*$/)) {
+                    reports.push(fail(`${pattern} may only have one wildcard`));
+                }
+
+                const check: Record<string, string[][]> = {};
+                for (const [type, pattern] of Object.entries(elements)) {
+                    if (typeof pattern === 'string') {
+                        const [prefix, suffix] = pattern.split('*', 2);
+                        const matches = glob.sync(
+                            pattern.replace('/*', '/**/*'),
+                        );
+                        for (const file of matches) {
+                            const match = file.slice(
+                                prefix.length,
+                                -suffix.length,
+                            );
+                            check[match] = check[match] ?? [];
+                            check[match].push([type, file]);
+                        }
+                    }
+                }
+                const types = Object.keys(elements);
+
+                const moreReports = await Promise.all(
+                    Object.entries(check).map(
+                        async ([match, found]): Promise<Report> => {
+                            const reports: Report[] = [];
+                            const foundTypes = found.map((f) => f[0]);
+
+                            if (
+                                types.length != foundTypes.length ||
+                                !types.reduce(
+                                    (prev, item) =>
+                                        prev && foundTypes.includes(item),
+                                    true,
+                                )
+                            ) {
+                                reports.push(
+                                    fail(
+                                        `expected [${foundTypes}] to match [${types}]`,
+                                    ),
+                                );
+                            }
+
+                            const moreReports = await Promise.all(
+                                found.map(async ([k, v]) => {
+                                    const reports: Report[] = [];
+                                    reports.push(await checkFile(v));
+                                    return reduceReports(
+                                        reports,
+                                        `Checking ${k} for ${pattern}`,
+                                    );
+                                }),
+                            );
+                            reports.push(...moreReports);
+                            return reduceReports(
+                                reports,
+                                `${match} for "${pattern}": checking that all of [${types}] exist`,
+                            );
+                        },
+                    ),
+                );
+                reports.push(...moreReports);
+            } else {
+                // Simple file match
+                reports.push(
+                    ...(await Promise.all(
+                        Object.entries(elements).map(async ([_, v]) => {
+                            return checkFile(v);
+                        }),
+                    )),
+                );
+            }
+            return reduceReports(reports, `Checking "${pattern}":`);
+        }),
+    );
+    return reduceReports(reports, `Checking files for "${key}":`);
+}
+
+export async function run(): Promise<Report> {
+    const reports = await Promise.all(
+        PACKAGE_FILE_KEYS.map((key) => checkKey(key, PACKAGE_JSON[key])),
+    );
+    return reduceReports(
+        reports,
+        'Checking files listed in package.json actually exist:',
+    );
+}
