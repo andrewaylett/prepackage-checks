@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@tsconfig/node18/tsconfig.json",
   "references": [
     {
       "path": "./src"
@@ -7,13 +7,9 @@
   ],
   "files": [],
   "compilerOptions": {
-    "module": "Node16",
-    "target": "ES2022",
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
-    // use Node's module resolution algorithm, instead of the legacy TS one
-    "moduleResolution": "Node16",
     "composite": true,
     "tsBuildInfoFile": "./build/base.tsBuildInfo"
   }
