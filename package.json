@@ -38,7 +38,7 @@
   "devDependencies": {
     "@jest/globals": "29.7.0",
     "@tsconfig/node18": "18.2.2",
-    "@types/node": "20.7.1",
+    "@types/node": "20.7.2",
     "@typescript-eslint/eslint-plugin": "6.7.3",
     "@typescript-eslint/parser": "6.7.3",
     "downgrade-build": "1.0.0",
