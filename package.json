@@ -9,7 +9,7 @@
     "url": "https://github.com/andrewaylett/prepackage-checks.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "type": "module",
   "bin": "./dist/cli.js",
@@ -33,21 +33,23 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "glob": "^10.3.4"
+    "@npmcli/arborist": "^9.0.0",
+    "glob": "^10.3.4",
+    "npm-packlist": "^10.0.0"
   },
   "devDependencies": {
-    "@jest/globals": "29.7.0",
     "@tsconfig/node18": "18.2.2",
     "@types/node": "20.11.17",
+    "@types/npm-packlist": "7.0.3",
+    "@types/npmcli__arborist": "6.3.0",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
     "downgrade-build": "1.0.0",
     "eslint": "8.56.0",
     "eslint-config-andrewaylett": "3.0.0",
     "extend-expect": "2.0.1",
-    "jest": "29.7.0",
     "prettier": "3.2.5",
-    "ts-jest": "29.1.2",
+    "test-in-build": "0.1.0",
     "ts-node": "10.9.2",
     "typescript": "5.3.3"
   }

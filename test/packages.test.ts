@@ -30,91 +30,12 @@
  * limitations under the License.
  */
 
-import { mkdtemp, readdir } from 'node:fs/promises';
-import path from 'node:path';
-import { test } from 'node:test';
-import { spawn } from 'node:child_process';
-import os from 'node:os';
+import { testBuild } from 'test-in-build';
 
-import { expect } from './expect.js';
-
-const SUCCESSFUL_BASE: string = path.resolve('./test', 'successful');
-const SUCCESSFUL: Promise<string[]> = readdir(SUCCESSFUL_BASE);
-const FAILING_BASE: string = path.resolve('./test', 'failing');
-const FAILING: Promise<string[]> = readdir(FAILING_BASE);
-
-function buildTests(base: string, cases: Promise<string[]>, pass: boolean) {
-    test(`${
-        pass ? 'Successful' : 'Failing'
-    } Tests`, async (ctx): Promise<void> =>
-        Promise.all(
-            (await cases).map(async (testcase) => {
-                const testDirectory = path.resolve(base, testcase);
-                const buildDirectory = await mkdtemp(
-                    path.join(os.tmpdir(), `successful-${testcase}-`),
-                );
-                await ctx.test(
-                    `${testcase} should be a directory`,
-                    async () => {
-                        await expect(testDirectory).isADirectory();
-                    },
-                );
-                await ctx.test(`${testcase} should copy cleanly`, () =>
-                    expect(
-                        spawn('cp', ['-r', testDirectory, buildDirectory]),
-                    ).toSpawnSuccessfully(),
-                );
-                await ctx.test(`${testcase} should install cleanly`, () =>
-                    expect(
-                        spawn(
-                            'npm',
-                            [
-                                'install',
-                                path.resolve(testDirectory, '../../..'),
-                            ],
-                            {
-                                cwd: path.resolve(buildDirectory, testcase),
-                                stdio: 'pipe',
-                            },
-                        ),
-                    ).toSpawnSuccessfully(),
-                );
-                await ctx.test(
-                    `${testcase} should run prepackage-checks ${
-                        pass
-                            ? 'successfully'
-                            : 'and exit with a non-zero status code'
-                    }`,
-                    async () => {
-                        const childProcess = spawn(
-                            'npx',
-                            ['prepackage-checks'],
-                            {
-                                cwd: path.resolve(buildDirectory, testcase),
-                                stdio: 'pipe',
-                            },
-                        );
-
-                        const allData: string[] = [];
-                        childProcess.stdout.on('data', (data) =>
-                            allData.push(data),
-                        );
-                        childProcess.stdout.pipe(process.stdout);
-                        childProcess.stderr.pipe(process.stderr);
-
-                        await expect(childProcess).toSpawnSuccessfully(pass);
-
-                        const blob = allData.join('');
-
-                        const { assert } = await import(
-                            path.resolve(testDirectory, 'expect.cjs')
-                        );
-                        assert(blob, expect);
-                    },
-                );
-            }),
-        ).then(() => {}));
-}
-
-buildTests(SUCCESSFUL_BASE, SUCCESSFUL, true);
-buildTests(FAILING_BASE, FAILING, false);
+await testBuild('.', './test', ({ testDirectory }) =>
+    Promise.resolve({
+        cmd: 'npx',
+        args: ['prepackage-checks'],
+        cwd: testDirectory,
+    }),
+);
