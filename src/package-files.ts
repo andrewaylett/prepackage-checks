@@ -16,8 +16,11 @@
 
 import { readFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
+import path from 'node:path';
 
 import { glob } from 'glob';
+import Arborist from '@npmcli/arborist';
+import packlist from 'npm-packlist';
 
 type StringOrStringRecord = string | Record<string, string>;
 type NestedStringRecords =
@@ -84,7 +87,7 @@ function inform(m: string): Report {
     };
 }
 
-async function checkFile(v: unknown): Promise<Report> {
+async function checkFile(pack: string[], v: unknown): Promise<Report> {
     if (typeof v != 'string') {
         return fail('Invalid structure: expected a string filename');
     }
@@ -92,7 +95,12 @@ async function checkFile(v: unknown): Promise<Report> {
         if (!(await stat(v)).isFile()) {
             return fail(`${v} is not a file`);
         } else {
-            return inform(`Found file "${v}"`);
+            const absolute = path.resolve(v);
+            if (pack.includes(absolute)) {
+                return inform(`Found file "${v}"`);
+            } else {
+                return fail(`${v} is not packaged`);
+            }
         }
     } catch {
         return fail(`${v} does not exist`);
@@ -100,6 +108,7 @@ async function checkFile(v: unknown): Promise<Report> {
 }
 
 async function checkKey(
+    pack: string[],
     key: string,
     value?: NestedStringRecords,
 ): Promise<Report> {
@@ -169,7 +178,7 @@ async function checkKey(
                             const moreReports = await Promise.all(
                                 found.map(async ([k, v]) => {
                                     const reports: Report[] = [];
-                                    reports.push(await checkFile(v));
+                                    reports.push(await checkFile(pack, v));
                                     return reduceReports(
                                         reports,
                                         `Checking ${k} for ${pattern}`,
@@ -190,7 +199,7 @@ async function checkKey(
                 reports.push(
                     ...(await Promise.all(
                         Object.entries(elements).map(async ([_, v]) => {
-                            return checkFile(v);
+                            return checkFile(pack, v);
                         }),
                     )),
                 );
@@ -202,8 +211,12 @@ async function checkKey(
 }
 
 export async function run(): Promise<Report> {
+    const arborist = new Arborist({ path: '.' });
+    const tree = await arborist.loadActual();
+    const relativePack = await packlist(tree);
+    const pack = relativePack.map((f) => path.resolve('./', f));
     const reports = await Promise.all(
-        PACKAGE_FILE_KEYS.map((key) => checkKey(key, PACKAGE_JSON[key])),
+        PACKAGE_FILE_KEYS.map((key) => checkKey(pack, key, PACKAGE_JSON[key])),
     );
     return reduceReports(
         reports,

@@ -25,12 +25,8 @@ life as a set of Jest tests in one of my library projects.
 Having copied it a couple of times, the time seemed ripe to extract the tooling
 into a separate package for easier reuse.
 
-Jest has no "proper" API, but it _does_ expose its CLI directly as a library.
-Rather than rewrite the tests to run without Jest, we use Jest's CLI API to run
-the tests directly from the package.
-This lets us avoid picking up any Jest configuration from the calling package;
-we are entirely self-contained.
+I then rewrote the whole package to avoid Jest, as Jest, ESM, and TS don't always play well together.
 
-There is no requirement for the package being validated to use Jest for its
-tests, or indeed for it to depend on Jest in any way apart from indirectly via
-this package.
+Functional tests validate that the package behaves as expected. They're using node:test, rather than Jest, for the
+same reasons. We can still use `expect`, though 🎉. Each test case has a file called `expect.cjs`, which is
+dynamically imported to allow test-specific assertions.
