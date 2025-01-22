@@ -38,7 +38,7 @@
     "npm-packlist": "^10.0.0"
   },
   "devDependencies": {
-    "@tsconfig/node18": "18.2.2",
+    "@tsconfig/node20": "20.1.4",
     "@types/node": "20.11.17",
     "@types/npm-packlist": "7.0.3",
     "@types/npmcli__arborist": "6.3.0",
@@ -47,7 +47,6 @@
     "downgrade-build": "1.0.0",
     "eslint": "8.56.0",
     "eslint-config-andrewaylett": "3.0.0",
-    "extend-expect": "3.0.0",
     "prettier": "3.2.5",
     "test-in-build": "0.1.0",
     "ts-node": "10.9.2",
