@@ -50,6 +50,6 @@
     "prettier": "3.4.2",
     "test-in-build": "0.2.0",
     "ts-node": "10.9.2",
-    "typescript": "5.3.3"
+    "typescript": "5.7.3"
   }
 }
