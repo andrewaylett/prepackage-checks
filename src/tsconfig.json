@@ -1,8 +1,10 @@
 {
-  "extends": "..",
-  "include": ["./**/*.ts"],
   "compilerOptions": {
     "outDir": "../dist",
     "tsBuildInfoFile": "../build/src.tsbuildinfo"
-  }
+  },
+  "extends": "..",
+  "include": [
+    "./**/*.ts"
+  ]
 }

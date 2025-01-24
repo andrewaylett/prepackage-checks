@@ -1,18 +1,18 @@
 {
   "name": "prepackage-checks",
   "description": "Validates package invariants before publishing",
-  "author": "Andrew Aylett",
   "version": "0.2.0",
+  "author": "Andrew Aylett",
   "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": "./dist/cli.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/andrewaylett/prepackage-checks.git"
   },
-  "engines": {
-    "node": ">=20"
-  },
-  "type": "module",
-  "bin": "./dist/cli.js",
   "scripts": {
     "build": "npm run buildOnly",
     "buildOnly": "tsc --build .",
@@ -26,11 +26,6 @@
     "prepare": "npm run clean && npm run buildOnly",
     "pretest": "npm run lint",
     "test": "node --loader ts-node/esm test/runner.ts"
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "all"
   },
   "dependencies": {
     "@npmcli/arborist": "^9.0.0",
@@ -51,5 +46,10 @@
     "test-in-build": "0.2.0",
     "ts-node": "10.9.2",
     "typescript": "5.7.3"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }

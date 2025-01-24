@@ -1,44 +1,69 @@
----
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
-    - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.6.0
-      hooks:
-          - id: trailing-whitespace
-            exclude: \.snap$
-          - id: end-of-file-fixer
-            exclude: ^\.idea
-          - id: check-case-conflict
-          - id: check-merge-conflict
-          - id: check-yaml
-          - id: check-toml
-          - id: check-added-large-files
-          - id: mixed-line-ending
-    - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-      rev: 2.7.3
-      hooks:
-          - id: editorconfig-checker
-            exclude_types:
-                - javascript
-                - ts
-                - markdown
-                - yaml
-                - json
-            exclude: LICENSE
-    - repo: https://github.com/pre-commit/mirrors-prettier
-      rev: v3.1.0
-      hooks:
-          - id: prettier
-    - repo: https://github.com/Lucas-C/pre-commit-hooks
-      rev: v1.5.5
-      hooks:
-          - id: insert-license
-            types:
-                - ts
-            args:
-                - --license-filepath
-                - .license-header
-                - --comment-style
-                - '/*| *| */'
-                - --allow-past-years
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: \.snap$
+  - id: end-of-file-fixer
+    exclude: ^\.idea
+  - id: check-case-conflict
+  - id: check-merge-conflict
+  - id: check-yaml
+  - id: check-toml
+  - id: check-added-large-files
+  - id: mixed-line-ending
+  - id: pretty-format-json
+    exclude: package-lock\.json
+    args:
+    - --autofix
+    - --top-keys
+    - name,description,version,author,license,type,engines,exports,bin,repository,scripts,dependencies,devDependencies,peerDependencies
+
+- repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+  rev: 2.7.3
+  hooks:
+  - id: editorconfig-checker
+    exclude_types:
+    - javascript
+    - ts
+    - markdown
+    - yaml
+    - json
+    exclude: LICENSE
+- repo: https://github.com/pre-commit/mirrors-prettier
+  rev: v3.1.0
+  hooks:
+  - id: prettier
+    exclude_types:
+    - json
+    - yaml
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.5.5
+  hooks:
+  - id: insert-license
+    types:
+    - ts
+    args:
+    - --license-filepath
+    - .license-header
+    - --comment-style
+    - '/*| *| */'
+    - --allow-past-years
+
+- repo: https://github.com/rhysd/actionlint
+  rev: v1.7.6
+  hooks:
+  - id: actionlint
+- repo: https://github.com/google/yamlfmt
+  rev: v0.14.0
+  hooks:
+  - id: yamlfmt
+- repo: local
+  hooks:
+  - id: dedupe
+    name: npm dedupe
+    files: package\.json|package-lock\.json
+    language: system
+    entry: npm dedupe

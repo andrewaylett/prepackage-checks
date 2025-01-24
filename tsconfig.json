@@ -1,5 +1,13 @@
 {
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "tsBuildInfoFile": "./build/base.tsBuildInfo"
+  },
   "extends": "@tsconfig/node20/tsconfig.json",
+  "files": [],
   "references": [
     {
       "path": "./src"
@@ -7,13 +15,5 @@
     {
       "path": "./test"
     }
-  ],
-  "files": [],
-  "compilerOptions": {
-    "declaration": true,
-    "sourceMap": true,
-    "declarationMap": true,
-    "composite": true,
-    "tsBuildInfoFile": "./build/base.tsBuildInfo"
-  }
+  ]
 }
