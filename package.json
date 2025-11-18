@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@npmcli/arborist": "^9.0.0",
-    "glob": "^10.3.4",
+    "glob": "^11.0.0",
     "npm-packlist": "^10.0.0"
   },
   "devDependencies": {
